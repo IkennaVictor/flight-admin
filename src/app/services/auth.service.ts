@@ -37,9 +37,9 @@ export class AuthService {
   depth = 0;
 
   constructor(private http: HttpClient,
-    private router: Router,
-    private toastr: ToastrService,
-    private env: EnvService) { }
+              private router: Router,
+              private toastr: ToastrService,
+              private env: EnvService) { }
 
   cleanObject(obj) {
     this.depth += 1;
@@ -62,9 +62,9 @@ export class AuthService {
     const response = this.http.post(this.env.API_URL + '/staff/login', payload)
     .pipe(tap((res: LoginResponse) => {
       element.removeClass('running');
-        console.log('auth.service: res =>', res);
+      console.log('auth.service: res =>', res);
       if (res.success) {
-        this.showNotification(`Login successful<br/>Welcome! PMT Terminal Admin`, 'primary', 'left');
+        this.showNotification(`Login successful<br/>Welcome! PMT Terminal Admin`);
         const { user, token } = res.payload;
         if (setLocalStorage('user', user, null)) {
           console.log('User info stored');
@@ -81,24 +81,28 @@ export class AuthService {
         const intendURL = getLocalStorage('intendURL') === null ? '/dashboard' : getLocalStorage('intendURL');
         this.router.navigate([intendURL]);
       } else {
-        this.showNotification(res.message, 'danger', 'left');
+        this.showNotification(res.message);
         this.token = null;
         this.isLoggedIn = false;
       }
-      }));
-      return await response.toPromise();
+      }, (err) => {
+      element.removeClass('running');
+      this.showNotification(err);
+      this.token = null;
+      this.isLoggedIn = false;
+    }));
+    return await response.toPromise();
   }
 
 
-  showNotification(message, color = 'primary', align= 'left') {
+  showNotification(message) {
     this.toastr.show(`<span class="now-ui-icons ui-1_bell-53"></span> <b>${message}</b>`, '', {
-        timeOut: 8000,
-        closeButton: true,
-        enableHtml: true,
-        toastClass: `alert alert-${color} alert-with-icon`,
-        positionClass: `toast-button-${align}`,
-      });
-    }
+      timeOut: 8000,
+      closeButton: true,
+      enableHtml: true,
+      toastClass: 'alert alert-primary alert-with-icon',
+    });
+  }
 
   register(data: any) {
     const payload = this.cleanObject(data);
